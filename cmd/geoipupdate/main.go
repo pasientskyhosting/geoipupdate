@@ -65,6 +65,9 @@ func run(client *http.Client, config *geoipupdate.Config) error {
 		if err != nil {
 			return errors.Wrapf(err, "error retrieving filename for %s", editionID)
 		}
+		if filename == "GeoIP2-City.mmdb" {
+			filename = "GeoLite2-City.mmdb"
+		}
 		filePath := filepath.Join(config.DatabaseDirectory, filename)
 		dbWriter, err := database.NewLocalFileDatabaseWriter(filePath, config.LockFile, config.Verbose)
 		if err != nil {

@@ -3,3 +3,4 @@
 /cmd/geoipupdate/geoipupdate
 /vendor
 .idea
+/docker/geoipupdate

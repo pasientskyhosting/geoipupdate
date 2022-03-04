@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e
 
@@ -16,8 +16,11 @@ trap 'kill ${!}; term_handler' SIGTERM
 pid=0
 conf_file=/etc/GeoIP.conf
 database_dir=/usr/share/GeoIP
+temp_database_dir=/usr/share/GeoIP-Temp
 flags=
 frequency=$((GEOIPUPDATE_FREQUENCY * 60 * 60))
+
+mkdir /usr/share/GeoIP-Temp
 
 if ! [ -z "$GEOIPUPDATE_CONF_FILE" ]; then
   conf_file=$GEOIPUPDATE_CONF_FILE
@@ -62,7 +65,11 @@ fi
 
 while true; do
     echo "# STATE: Running geoipupdate"
-    /usr/bin/geoipupdate -d "$database_dir" -f "$conf_file" $flags
+    /usr/bin/geoipupdate -d "$temp_database_dir" -f "$conf_file" $flags
+    # update db if diff found
+    if [[ $(diff <(find ${temp_database_dir} -type f -name "*.mmdb" -exec md5sum {} + | sort -k 2 | cut -f1 -d" ") <(find ${database_dir} -type f -name "*.mmdb" -exec md5sum {} + | sort -k 2 | cut -f1 -d" ")) != "" ]]; then 
+      cp -u -r $temp_database_dir/*.mmdb $database_dir
+    fi
     if [ "$frequency" -eq 0 ]; then
         break
     fi
